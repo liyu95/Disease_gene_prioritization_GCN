@@ -13,6 +13,7 @@ import scipy.io as sio
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import pandas as pd
+import h5py
 
 from decagon.deep.optimizer import DecagonOptimizer
 from decagon.deep.model import DecagonModel
@@ -55,7 +56,9 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type):
     for u, v in edges_pos[edge_type[:2]][edge_type[2]]:
         score = sigmoid(rec[u, v])
         preds.append(score)
-        assert adj_mats_orig[edge_type[:2]][edge_type[2]][u,v] == 1, 'Problem 1'
+
+        # need to deal with the ground truth which is not 1
+        # assert adj_mats_orig[edge_type[:2]][edge_type[2]][u,v] == 1, 'Problem 1'
 
         actual.append(edge_ind)
         predicted.append((score, edge_ind))
@@ -139,6 +142,7 @@ gene_feature_path = '../IMC/GeneFeatures.mat'
 f_gene_feature = h5py.File(gene_feature_path,'r')
 gene_feature_exp = np.array(f_gene_feature['GeneFeatures'])
 gene_feature_exp = np.transpose(gene_feature_exp)
+gene_network_exp = sp.csc_matrix(gene_feature_exp)
 
 row_list = [3215, 1137, 744, 2503, 1143, 324, 1188, 4662, 1243]
 gene_feature_list_other_spe = list()
@@ -154,15 +158,16 @@ disease_tfidf_path = '../IMC/clinicalfeatures_tfidf.mat'
 f_disease_tfidf = h5py.File(disease_tfidf_path)
 disease_tfidf = np.array(f_disease_tfidf['F'])
 disease_tfidf = np.transpose(disease_tfidf)
+disease_tfidf = sp.csc_matrix(disease_tfidf)
 
 # finish the drug drug network
 drug_drug_adj_list= list()
 drug_drug_adj_list.append(disease_network_adj)
 
-val_test_size = 0.05
-n_genes = len(ppi_nodes_sorted)
-n_drugs = len(drug_list)
-n_drugdrug_rel_types = len(side_effect_used_list)
+val_test_size = 0.0005
+n_genes = 12331
+n_drugs = 3215
+n_drugdrug_rel_types = len(drug_drug_adj_list)
 gene_adj = gene_network_adj
 gene_degrees = np.array(gene_adj.sum(axis=0)).squeeze()
 
@@ -186,7 +191,7 @@ degrees = {
 
 ##################need to consider non-sparse feature##################
 # featureless (genes)
-gene_feat = sp.identity(n_genes)
+gene_feat = sp.hstack(gene_feature_list_other_spe+[gene_feature_exp])
 gene_nonzero_feat, gene_num_feat = gene_feat.shape
 gene_feat = preprocessing.sparse_to_tuple(gene_feat.tocoo())
 
@@ -216,7 +221,7 @@ edge_type2decoder = {
     (0, 0): 'bilinear',
     (0, 1): 'bilinear',
     (1, 0): 'bilinear',
-    (1, 1): 'dedicom',
+    (1, 1): 'bilinear',
 }
 
 edge_types = {k: len(v) for k, v in adj_mats_orig.items()}
@@ -233,7 +238,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('neg_sample_size', 1, 'Negative sample size.')
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 10, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 300, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
 flags.DEFINE_float('weight_decay', 0, 'Weight for L2 loss on embedding matrix.')
@@ -331,7 +336,7 @@ for epoch in range(FLAGS.epochs):
 
 print("Optimization finished!")
 
-for et in range(num_edge_types):
+for et in [2,3]:
     roc_score, auprc_score, apk_score = get_accuracy_scores(
         minibatch.test_edges, minibatch.test_edges_false, minibatch.idx2edge_type[et])
     print("Edge type=", "[%02d, %02d, %02d]" % minibatch.idx2edge_type[et])

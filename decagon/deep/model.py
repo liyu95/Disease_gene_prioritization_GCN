@@ -70,6 +70,11 @@ class DecagonModel(Model):
                 adj_mats=self.adj_mats, nonzero_feat=self.nonzero_feat,
                 act=lambda x: x, dropout=self.dropout,
                 logging=self.logging)(self.inputs[j]))
+            # self.hidden1[i].append(GraphConvolutionMulti(
+            #     input_dim=self.input_dim, output_dim=FLAGS.hidden1,
+            #     edge_type=(i,j), num_types=self.edge_types[i,j],
+            #     adj_mats=self.adj_mats, act=lambda x: x, 
+            #     dropout=self.dropout,logging=self.logging)(self.inputs[j]))
 
         for i, hid1 in self.hidden1.items():
             self.hidden1[i] = tf.nn.relu(tf.add_n(hid1))

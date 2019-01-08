@@ -77,8 +77,8 @@ class EdgeMinibatchIterator(object):
 
     def mask_test_edges(self, edge_type, type_idx):
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
-        num_test = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
-        num_val = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
+        num_test = max(100, int(np.floor(edges_all.shape[0] * self.val_test_size)))
+        num_val = max(100, int(np.floor(edges_all.shape[0] * self.val_test_size)))
 
         all_edge_idx = list(range(edges_all.shape[0]))
         np.random.shuffle(all_edge_idx)
@@ -131,7 +131,13 @@ class EdgeMinibatchIterator(object):
         self.test_edges_false[edge_type][type_idx] = np.array(test_edges_false)
 
     def end(self):
-        finished = len(self.freebatch_edge_types) == 0
+        # finished = len(self.freebatch_edge_types) == 0
+        a = self.edge_type2idx[0, 1, 0] not in self.freebatch_edge_types
+        b = self.edge_type2idx[1, 0, 0] not in self.freebatch_edge_types
+        if a & b:
+            finished = 1
+        else:
+            finished = 0
         return finished
 
     def update_feed_dict(self, feed_dict, dropout, placeholders):
@@ -156,7 +162,7 @@ class EdgeMinibatchIterator(object):
     def next_minibatch_feed_dict(self, placeholders):
         """Select a random edge type and a batch of edges of the same type"""
         while True:
-            if self.iter % 4 == 0:
+            if self.iter % 4 == -1:
                 # gene-gene relation
                 self.current_edge_type_idx = self.edge_type2idx[0, 0, 0]
             elif self.iter % 4 == 1:
@@ -170,15 +176,15 @@ class EdgeMinibatchIterator(object):
                 if len(self.freebatch_edge_types) > 0:
                     self.current_edge_type_idx = np.random.choice(self.freebatch_edge_types)
                 else:
-                    self.current_edge_type_idx = self.edge_type2idx[0, 0, 0]
-                    self.iter = 0
+                    self.current_edge_type_idx = self.edge_type2idx[0, 1, 0]
+                    self.iter = 1
 
             i, j, k = self.idx2edge_type[self.current_edge_type_idx]
             if self.batch_num[self.current_edge_type_idx] * self.batch_size \
                    <= len(self.train_edges[i,j][k]) - self.batch_size + 1:
                 break
             else:
-                if self.iter % 4 in [0, 1, 2]:
+                if self.iter % 4 in [1, 2]:
                     self.batch_num[self.current_edge_type_idx] = 0
                 else:
                     self.freebatch_edge_types.remove(self.current_edge_type_idx)
@@ -212,6 +218,9 @@ class EdgeMinibatchIterator(object):
         self.current_edge_type_idx = 0
         self.freebatch_edge_types = list(range(self.num_edge_types))
         self.freebatch_edge_types.remove(self.edge_type2idx[0, 0, 0])
-        self.freebatch_edge_types.remove(self.edge_type2idx[0, 1, 0])
-        self.freebatch_edge_types.remove(self.edge_type2idx[1, 0, 0])
+        self.freebatch_edge_types.remove(self.edge_type2idx[0, 0, 1])
+        self.freebatch_edge_types.remove(self.edge_type2idx[1, 1, 0])
+        self.freebatch_edge_types.remove(self.edge_type2idx[1, 1, 1])
+        # self.freebatch_edge_types.remove(self.edge_type2idx[0, 1, 0])
+        # self.freebatch_edge_types.remove(self.edge_type2idx[1, 0, 0])
         self.iter = 0
