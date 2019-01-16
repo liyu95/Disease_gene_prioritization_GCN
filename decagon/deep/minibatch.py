@@ -80,6 +80,10 @@ class EdgeMinibatchIterator(object):
         num_test = max(100, int(np.floor(edges_all.shape[0] * self.val_test_size)))
         num_val = max(100, int(np.floor(edges_all.shape[0] * self.val_test_size)))
 
+        if edge_type not in [(0,1), (1, 0)]:
+            num_test = 10
+            num_val = 10
+
         all_edge_idx = list(range(edges_all.shape[0]))
         np.random.shuffle(all_edge_idx)
 

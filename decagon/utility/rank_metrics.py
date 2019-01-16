@@ -40,6 +40,24 @@ def apk(actual, predicted, k=10):
     return score / min(len(actual), k)
 
 
+def ark(actual, predicted, k=10):
+
+    if len(predicted)>k:
+        predicted = predicted[:k]
+
+    num_actual = len(actual)
+
+    num_hits = 0.0
+    if len(actual)==0:
+        return 0
+
+    for i, p in enumerate(actual):
+        if p in predicted:
+            num_hits += 1.0
+
+
+    return num_hits / min(len(actual), k)
+
 def mapk(actual, predicted, k=10):
     """
     Computes the mean average precision at k.
