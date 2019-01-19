@@ -56,7 +56,7 @@ def ark(actual, predicted, k=10):
             num_hits += 1.0
 
 
-    return num_hits / min(len(actual), k)
+    return num_hits / len(actual)
 
 def mapk(actual, predicted, k=10):
     """
