@@ -5,12 +5,12 @@ More details can be referred to the paper: [paper](www.google.com)
 
 ## Overview
 <p align="center">
-<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/link_prediction.png" width="200"/>
+<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/link_prediction.png" width="400"/>
 </p>
 Disease gene prioritization as a link prediction problem. The heterogeneous network contains three components, the gene-gene interaction network, the disease similarity network, and the disease-gene association network. The potential disease gene associations can be considered as missing links in the disease-gene association network. Our goal is to predict those links given the heterogeneous network and additional raw representations of the nodes (diseases and genes).
 
 <p align="center">
-<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/gcn.png" width="400"/>
+<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/gcn.png" width="800"/>
 </p>
 Overview of the proposed method. (A) The input of our model contains two components, the heterogeneous network and the additional information for the nodes. As for the heterogeneous network, we used HumanNet as the gene network, disease similarity network as the disease network, and the associations from OMIM as the disease-gene network. For the additional information of diseases, we used Disease Ontology similarity and the TF-IDF calculated from OMIM. For the additional information of genes, we used association matrices from other species and the gene expression microarray data. (B) Examples of one layer of the graph convolutional neural network update for learning node embeddings. For each node, the model aggregates information from its neighbor nodes' previous layer embeddings and then apply activation to obtain the current layer embedding of that node. Note that for different nodes, the computational graphs can be different but the parameters are shared for the same operation in different computational graphs. (C) The link prediction model. We model the edge prediction from the learned node embeddings with bilinear edge decoder. (D) The cross-entropy loss calculated from the ground truth and the output of the link prediction model for certain edges (or non-edges) is used as the loss function to train both the node embedding model and the edge decoding model jointly in an end-to-end fashion.
 
