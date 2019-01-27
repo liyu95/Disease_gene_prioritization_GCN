@@ -47,13 +47,7 @@ class EdgeMinibatchIterator(object):
         self.adj_train = {edge_type: [None]*n for edge_type, n in self.edge_types.items()}
         for i, j in self.edge_types:
             for k in range(self.edge_types[i,j]):
-                print("Minibatch edge type:", "(%d, %d, %d)" % (i, j, k))
                 self.mask_test_edges((i, j), k)
-
-                print("Train edges=", "%04d" % len(self.train_edges[i,j][k]))
-                print("Val edges=", "%04d" % len(self.val_edges[i,j][k]))
-                print("Test edges=", "%04d" % len(self.test_edges[i,j][k]))
-
     def preprocess_graph(self, adj):
         adj = sp.coo_matrix(adj)
         if adj.shape[0] == adj.shape[1]:
@@ -97,8 +91,6 @@ class EdgeMinibatchIterator(object):
 
         test_edges_false = []
         while len(test_edges_false) < len(test_edges):
-            if len(test_edges_false) % 1000 == 0:
-                print("Constructing test edges=", "%04d/%04d" % (len(test_edges_false), len(test_edges)))
             idx_i = np.random.randint(0, self.adj_mats[edge_type][type_idx].shape[0])
             idx_j = np.random.randint(0, self.adj_mats[edge_type][type_idx].shape[1])
             if self._ismember([idx_i, idx_j], edges_all):
@@ -110,8 +102,6 @@ class EdgeMinibatchIterator(object):
 
         val_edges_false = []
         while len(val_edges_false) < len(val_edges):
-            if len(val_edges_false) % 1000 == 0:
-                print("Constructing val edges=", "%04d/%04d" % (len(val_edges_false), len(val_edges)))
             idx_i = np.random.randint(0, self.adj_mats[edge_type][type_idx].shape[0])
             idx_j = np.random.randint(0, self.adj_mats[edge_type][type_idx].shape[1])
             if self._ismember([idx_i, idx_j], edges_all):
