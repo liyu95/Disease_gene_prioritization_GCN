@@ -22,19 +22,14 @@ from decagon.deep.model import DecagonModel
 from decagon.deep.minibatch import EdgeMinibatchIterator
 from decagon.utility import rank_metrics, preprocessing
 
-# Train on GPU
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
 np.random.seed(0)
 
-###########################################################
-#
-# Functions
-#
-###########################################################
 def tsne_visualization(matrix):
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt
@@ -65,7 +60,6 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type, name=None):
     def sigmoid(x):
         return 1. / (1 + np.exp(-x))
 
-    # Predict on test set of edges
     preds = []
     actual = []
     predicted = []
@@ -74,7 +68,6 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type, name=None):
         score = sigmoid(rec[u, v])
         preds.append(score)
 
-        # need to deal with the ground truth which is not 1
         assert adj_mats_orig[edge_type[:2]][edge_type[2]][u,v] == 1, 'Problem 1'
 
         actual.append(edge_ind)
@@ -132,7 +125,15 @@ def network_edge_threshold(network_adj, threshold):
     return preserved_network
 
 
-# Construct the three networks
+def get_prediction(edges_pos, edges_neg, edge_type):
+    feed_dict.update({placeholders['dropout']: 0})
+    feed_dict.update({placeholders['batch_edge_type_idx']: minibatch.edge_type2idx[edge_type]})
+    feed_dict.update({placeholders['batch_row_edge_type']: edge_type[0]})
+    feed_dict.update({placeholders['batch_col_edge_type']: edge_type[1]})
+    rec = sess.run(opt.predictions, feed_dict=feed_dict)
+
+    return 1. / (1 + np.exp(-rec))
+
 gene_phenes_path = './data_prioritization/genes_phenes.mat'
 f = h5py.File(gene_phenes_path, 'r')
 gene_network_adj = sp.csc_matrix((np.array(f['GeneGene_Hs']['data']),
@@ -144,7 +145,6 @@ disease_network_adj = sp.csc_matrix((np.array(f['PhenotypeSimilarities']['data']
     shape=(3215, 3215))
 disease_network_adj = disease_network_adj.tocsr()
 
-# try to cut a threshold of the disease network to reduce the number of edges
 disease_network_adj = network_edge_threshold(disease_network_adj, 0.2)
 
 
@@ -154,13 +154,10 @@ gene_disease_adj = sp.csc_matrix((np.array(f[dg_ref]['data']),
     shape=(12331, 3215))
 gene_disease_adj = gene_disease_adj.tocsr()
 
-
-# load novel associations
 novel_associations_adj = sp.csc_matrix((np.array(f['NovelAssociations']['data']),
     np.array(f['NovelAssociations']['ir']), np.array(f['NovelAssociations']['jc'])),
     shape=(12331,3215))
 
-# Build the gene feature
 gene_feature_path = './data_prioritization/GeneFeatures.mat'
 f_gene_feature = h5py.File(gene_feature_path,'r')
 gene_feature_exp = np.array(f_gene_feature['GeneFeatures'])
@@ -176,18 +173,16 @@ for i in range(1,9):
         shape=(12331, row_list[i]))
     gene_feature_list_other_spe.append(disease_gene_adj_tmp)
 
-# Build the disease feature
 disease_tfidf_path = './data_prioritization/clinicalfeatures_tfidf.mat'
 f_disease_tfidf = h5py.File(disease_tfidf_path)
 disease_tfidf = np.array(f_disease_tfidf['F'])
 disease_tfidf = np.transpose(disease_tfidf)
 disease_tfidf = sp.csc_matrix(disease_tfidf)
 
-# finish the disease network
 dis_dis_adj_list= list()
 dis_dis_adj_list.append(disease_network_adj)
 
-val_test_size = 0.15
+val_test_size = 0.1
 n_genes = 12331
 n_dis = 3215
 n_dis_rel_types = len(dis_dis_adj_list)
@@ -199,8 +194,6 @@ dis_gene_adj = gene_dis_adj.transpose(copy=True)
 
 dis_degrees_list = [np.array(dis_adj.sum(axis=0)).squeeze() for dis_adj in dis_dis_adj_list]
 
-
-# data representation
 adj_mats_orig = {
     (0, 0): [gene_adj, gene_adj.transpose(copy=True)],
     (0, 1): [gene_dis_adj],
@@ -212,17 +205,14 @@ degrees = {
     1: dis_degrees_list + dis_degrees_list,
 }
 
-# features (genes)
 gene_feat = sp.hstack(gene_feature_list_other_spe+[gene_feature_exp])
 gene_nonzero_feat, gene_num_feat = gene_feat.shape
 gene_feat = preprocessing.sparse_to_tuple(gene_feat.tocoo())
 
-# features (dis)
 dis_feat = disease_tfidf
 dis_nonzero_feat, dis_num_feat = dis_feat.shape
 dis_feat = preprocessing.sparse_to_tuple(dis_feat.tocoo())
 
-# data representation
 num_feat = {
     0: gene_num_feat,
     1: dis_num_feat,
@@ -257,17 +247,11 @@ print("Edge types:", "%d" % num_edge_types)
 
 if __name__ == '__main__':
 
-    ###########################################################
-    #
-    # Settings and placeholders
-    #
-    ###########################################################
-
     flags = tf.app.flags
     FLAGS = flags.FLAGS
     flags.DEFINE_integer('neg_sample_size', 1, 'Negative sample size.')
     flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-    flags.DEFINE_integer('epochs', 1, 'Number of epochs to train.')
+    flags.DEFINE_integer('epochs', 0, 'Number of epochs to train.')
     flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
     flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
     flags.DEFINE_float('weight_decay', 0.001, 'Weight for L2 loss on embedding matrix.')
@@ -275,18 +259,9 @@ if __name__ == '__main__':
     flags.DEFINE_float('max_margin', 0.1, 'Max margin parameter in hinge loss')
     flags.DEFINE_integer('batch_size', 512, 'minibatch size.')
     flags.DEFINE_boolean('bias', True, 'Bias term.')
-    # Important -- Do not evaluate/print validation performance every iteration as it can take
-    # substantial amount of time
-    PRINT_PROGRESS_EVERY = 150
 
     print("Defining placeholders")
     placeholders = construct_placeholders(edge_types)
-
-    ###########################################################
-    #
-    # Create minibatch iterator, model and optimizer
-    #
-    ###########################################################
 
     print("Create minibatch iterator")
     minibatch = EdgeMinibatchIterator(
@@ -326,49 +301,13 @@ if __name__ == '__main__':
     feed_dict = {}
     saver = tf.train.Saver()
     saver.restore(sess,'./model/model.ckpt')
+    feed_dict = minibatch.next_minibatch_feed_dict(placeholders=placeholders)
+    feed_dict = minibatch.update_feed_dict(
+        feed_dict=feed_dict,
+        dropout=FLAGS.dropout,
+        placeholders=placeholders)
 
-    ###########################################################
-    #
-    # Train model
-    #
-    ###########################################################
-
-    print("Train model")
-    for epoch in range(FLAGS.epochs):
-
-        minibatch.shuffle()
-        itr = 0
-        while not minibatch.end():
-            # Construct feed dictionary
-            feed_dict = minibatch.next_minibatch_feed_dict(placeholders=placeholders)
-            feed_dict = minibatch.update_feed_dict(
-                feed_dict=feed_dict,
-                dropout=FLAGS.dropout,
-                placeholders=placeholders)
-
-            t = time.time()
-
-            # Training step: run single weight update
-            outs = sess.run([opt.opt_op, opt.cost, opt.batch_edge_type_idx], feed_dict=feed_dict)
-            train_cost = outs[1]
-            batch_edge_type = outs[2]
-
-            if itr % PRINT_PROGRESS_EVERY == 0:
-                val_auc, val_auprc, val_apk, val_bedroc = get_accuracy_scores(
-                    minibatch.val_edges, minibatch.val_edges_false,
-                    minibatch.idx2edge_type[minibatch.current_edge_type_idx])
-
-                print("Epoch:", "%04d" % (epoch + 1), "Iter:", "%04d" % (itr + 1), "Edge:", "%04d" % batch_edge_type,
-                      "train_loss=", "{:.5f}".format(train_cost),
-                      "val_roc=", "{:.5f}".format(val_auc), "val_auprc=", "{:.5f}".format(val_auprc),
-                      "val_apk=", "{:.5f}".format(val_apk), "val_bedroc=", "{:.5f}".format(val_bedroc),
-                      "time=", "{:.5f}".format(time.time() - t))
-
-            itr += 1
-
-    print("Optimization finished!")
-
-    for et in [2,3]:
+    for et in [3]:
         roc_score, auprc_score, apk_score, bedroc = get_accuracy_scores(
             minibatch.test_edges, minibatch.test_edges_false, minibatch.idx2edge_type[et])
         print("Edge type=", "[%02d, %02d, %02d]" % minibatch.idx2edge_type[et])
@@ -377,3 +316,9 @@ if __name__ == '__main__':
         print("Edge type:", "%04d" % et, "Test AP@k score", "{:.5f}".format(apk_score))
         print("Edge type:", "%04d" % et, "Test BEDROC score", "{:.5f}".format(bedroc))
         print()
+
+    prediction = get_prediction(minibatch.test_edges, minibatch.test_edges_false, 
+    	minibatch.idx2edge_type[3])
+
+    print('Saving result...')
+    np.save('./result/prediction.npy', prediction)
