@@ -255,7 +255,7 @@ if __name__ == '__main__':
     flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
     flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
     flags.DEFINE_float('weight_decay', 0.001, 'Weight for L2 loss on embedding matrix.')
-    flags.DEFINE_float('dropout', 0.3, 'Dropout rate (1 - keep probability).')
+    flags.DEFINE_float('dropout', 0.1, 'Dropout rate (1 - keep probability).')
     flags.DEFINE_float('max_margin', 0.1, 'Max margin parameter in hinge loss')
     flags.DEFINE_integer('batch_size', 512, 'minibatch size.')
     flags.DEFINE_boolean('bias', True, 'Bias term.')
