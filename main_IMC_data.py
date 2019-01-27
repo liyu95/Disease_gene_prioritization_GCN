@@ -22,9 +22,6 @@ from decagon.deep.model import DecagonModel
 from decagon.deep.minibatch import EdgeMinibatchIterator
 from decagon.utility import rank_metrics, preprocessing
 
-# Train on CPU (hide GPU) due to memory constraints
-# os.environ['CUDA_VISIBLE_DEVICES'] = ""
-
 # Train on GPU
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = '1'
@@ -41,6 +38,7 @@ np.random.seed(0)
 def tsne_visualization(matrix):
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt
+    plt.figure(dpi=300)
     tsne = TSNE(n_components=2, verbose=1, perplexity=40, random_state=0,
             n_iter=1000)
     tsne_results = tsne.fit_transform(matrix)
@@ -104,73 +102,6 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type, name=None):
     if name!=None:
         with open(name, 'wb') as f:
             pickle.dump([labels_all, preds_all], f)
-    # calculate the apk for each disease
-    if edge_type==(0,1,0):
-        predicted_matrix = rec
-        true_matrix = adj_mats_orig[edge_type[:2]][edge_type[2]].toarray()
-        apk_list= list()
-        for i in list(set(list(edges_pos[edge_type[:2]][edge_type[2]][:,1]))):
-            actual_pos = np.where(true_matrix[:,i])[0]
-            if len(actual_pos)==0:
-                continue
-            predicted_pos = np.argsort(predicted_matrix[:,i])[::-1]
-            apk_tmp = rank_metrics.apk(list(actual_pos), list(predicted_pos), k=1)
-            apk_list.append(apk_tmp)
-        print(np.mean(apk_list))
-
-        # calculate average recall at k for each disease
-        for k in range(1, 20):
-            ark_list= list()
-            for i in list(set(list(edges_pos[edge_type[:2]][edge_type[2]][:,1]))):
-                actual_pos = np.where(true_matrix[:,i])[0]
-                if len(actual_pos)==0:
-                    continue
-                predicted_pos = np.argsort(predicted_matrix[:,i])[::-1]
-                ark_tmp = rank_metrics.ark(list(actual_pos), list(predicted_pos), k=k)
-                ark_list.append(ark_tmp)
-            print(np.mean(ark_list))
-
-        # for new disease, no link in training data, while there are link in the test data
-        training_disease = list(set(list(minibatch.train_edges[edge_type[:2]][edge_type[2]][:,1])))
-        for k in range(1, 20):
-            ark_list= list()
-            for i in list(set(list(edges_pos[edge_type[:2]][edge_type[2]][:,1]))):
-                actual_pos = np.where(true_matrix[:,i])[0]
-                if len(actual_pos)==0 or i in training_disease:
-                    continue
-                predicted_pos = np.argsort(predicted_matrix[:,i])[::-1]
-                ark_tmp = rank_metrics.ark(list(actual_pos), list(predicted_pos), k=k)
-                ark_list.append(ark_tmp)
-            print(np.mean(ark_list))
-
-
-        # for new genes, no link in training data, while there are link in the test data
-        training_genes = set(list(minibatch.train_edges[edge_type[:2]][edge_type[2]][:,0]))
-        for k in range(1, 20):
-            ark_list= list()
-            for i in list(set(list(edges_pos[edge_type[:2]][edge_type[2]][:,1]))):
-                actual_pos = np.where(true_matrix[:,i])[0]
-                actual_pos = set(list(actual_pos)) - training_genes
-                if len(actual_pos)==0:
-                    continue
-                predicted_pos = np.argsort(predicted_matrix[:,i])[::-1]
-                ark_tmp = rank_metrics.ark(list(actual_pos), list(predicted_pos), k=k)
-                ark_list.append(ark_tmp)
-            print(np.mean(ark_list))
-
-        # for novel associations
-        for k in range(1, 20):
-            ark_list= list()
-            for i in list(set(list(edges_pos[edge_type[:2]][edge_type[2]][:,1]))):
-                actual_pos = np.where(true_matrix[:,i])[0]
-                actual_pos = set(list(actual_pos)) - training_genes
-                if len(actual_pos)==0 or i in training_disease:
-                    continue
-                predicted_pos = np.argsort(predicted_matrix[:,i])[::-1]
-                ark_tmp = rank_metrics.ark(list(actual_pos), list(predicted_pos), k=k)
-                ark_list.append(ark_tmp)
-            print(np.mean(ark_list))        
-
     return roc_sc, aupr_sc, apk_sc, bedroc_sc
 
 
@@ -256,7 +187,7 @@ disease_tfidf = sp.csc_matrix(disease_tfidf)
 drug_drug_adj_list= list()
 drug_drug_adj_list.append(disease_network_adj)
 
-val_test_size = 0.1
+val_test_size = 0.05
 n_genes = 12331
 n_drugs = 3215
 n_drugdrug_rel_types = len(drug_drug_adj_list)
@@ -281,28 +212,15 @@ degrees = {
     1: drug_degrees_list + drug_degrees_list,
 }
 
-##################need to consider non-sparse feature##################
-# featureless (genes)
+# features (genes)
 gene_feat = sp.hstack(gene_feature_list_other_spe+[gene_feature_exp])
 gene_nonzero_feat, gene_num_feat = gene_feat.shape
 gene_feat = preprocessing.sparse_to_tuple(gene_feat.tocoo())
-
-# gene_feat = sp.identity(n_genes)
-# gene_nonzero_feat, gene_num_feat = gene_feat.shape
-# gene_feat = preprocessing.sparse_to_tuple(gene_feat.tocoo())
 
 # features (drugs)
 drug_feat = disease_tfidf
 drug_nonzero_feat, drug_num_feat = drug_feat.shape
 drug_feat = preprocessing.sparse_to_tuple(drug_feat.tocoo())
-
-
-# drug_feat = sp.identity(n_drugs)
-# drug_nonzero_feat, drug_num_feat = drug_feat.shape
-# drug_feat = preprocessing.sparse_to_tuple(drug_feat.tocoo())
-
-##################need to consider non-sparse feature##################
-
 
 # data representation
 num_feat = {
@@ -349,11 +267,11 @@ if __name__ == '__main__':
     FLAGS = flags.FLAGS
     flags.DEFINE_integer('neg_sample_size', 1, 'Negative sample size.')
     flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-    flags.DEFINE_integer('epochs', 1, 'Number of epochs to train.')
+    flags.DEFINE_integer('epochs', 10, 'Number of epochs to train.')
     flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
     flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
-    flags.DEFINE_float('weight_decay', 0, 'Weight for L2 loss on embedding matrix.')
-    flags.DEFINE_float('dropout', 0.1, 'Dropout rate (1 - keep probability).')
+    flags.DEFINE_float('weight_decay', 0.001, 'Weight for L2 loss on embedding matrix.')
+    flags.DEFINE_float('dropout', 0.3, 'Dropout rate (1 - keep probability).')
     flags.DEFINE_float('max_margin', 0.1, 'Max margin parameter in hinge loss')
     flags.DEFINE_integer('batch_size', 512, 'minibatch size.')
     flags.DEFINE_boolean('bias', True, 'Bias term.')
@@ -407,7 +325,7 @@ if __name__ == '__main__':
     sess.run(tf.global_variables_initializer())
     feed_dict = {}
     saver = tf.train.Saver()
-    saver.restore(sess,'./model.ckpt')
+    # saver.restore(sess,'./model.ckpt')
 
     ###########################################################
     #
@@ -459,23 +377,4 @@ if __name__ == '__main__':
         print("Edge type:", "%04d" % et, "Test AP@k score", "{:.5f}".format(apk_score))
         print("Edge type:", "%04d" % et, "Test BEDROC score", "{:.5f}".format(bedroc))
         print()
-    # saver.save(sess, './model_no_disease_feature.ckpt')
-
-# import pandas as pd
-# df = pd.DataFrame()
-# df['label'] =labels_all
-# df['predict'] = preds_all
-# df.to_csv('result_sample.csv',sep=',')
-
-# Get AUC, PRC
-
-# edges_pos, edges_neg, edge_type = minibatch.test_edges, minibatch.test_edges_false, minibatch.idx2edge_type[2]
-
-# check the novel associations predictions
-# first remove all the existing edges from the prediction
-# rec_flatten = rec.flatten()
-# previous_network_flatten = gene_disease_adj.toarray().flatten()
-# previous_edge_index = np.where(previous_network_flatten)[0]
-# new_edge_index = np.where(novel_associations_adj.toarray().flatten())[0]
-# sort_index = np.argsort(-rec_flatten)
-# rank_metrics.apk(list(new_edge_index), list(sort_index), k=10000)
+    # saver.save(sess, './model_gcas.ckpt')
