@@ -133,7 +133,7 @@ def network_edge_threshold(network_adj, threshold):
 
 
 # Construct the three networks
-gene_phenes_path = '../IMC/genes_phenes.mat'
+gene_phenes_path = './data_prioritization/genes_phenes.mat'
 f = h5py.File(gene_phenes_path, 'r')
 gene_network_adj = sp.csc_matrix((np.array(f['GeneGene_Hs']['data']),
     np.array(f['GeneGene_Hs']['ir']), np.array(f['GeneGene_Hs']['jc'])),
@@ -161,7 +161,7 @@ novel_associations_adj = sp.csc_matrix((np.array(f['NovelAssociations']['data'])
     shape=(12331,3215))
 
 # Build the gene feature
-gene_feature_path = '../IMC/GeneFeatures.mat'
+gene_feature_path = './data_prioritization/GeneFeatures.mat'
 f_gene_feature = h5py.File(gene_feature_path,'r')
 gene_feature_exp = np.array(f_gene_feature['GeneFeatures'])
 gene_feature_exp = np.transpose(gene_feature_exp)
@@ -177,7 +177,7 @@ for i in range(1,9):
     gene_feature_list_other_spe.append(disease_gene_adj_tmp)
 
 # Build the disease feature
-disease_tfidf_path = '../IMC/clinicalfeatures_tfidf.mat'
+disease_tfidf_path = './data_prioritization/clinicalfeatures_tfidf.mat'
 f_disease_tfidf = h5py.File(disease_tfidf_path)
 disease_tfidf = np.array(f_disease_tfidf['F'])
 disease_tfidf = np.transpose(disease_tfidf)
@@ -187,7 +187,7 @@ disease_tfidf = sp.csc_matrix(disease_tfidf)
 drug_drug_adj_list= list()
 drug_drug_adj_list.append(disease_network_adj)
 
-val_test_size = 0.05
+val_test_size = 0.15
 n_genes = 12331
 n_drugs = 3215
 n_drugdrug_rel_types = len(drug_drug_adj_list)
@@ -267,7 +267,7 @@ if __name__ == '__main__':
     FLAGS = flags.FLAGS
     flags.DEFINE_integer('neg_sample_size', 1, 'Negative sample size.')
     flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-    flags.DEFINE_integer('epochs', 10, 'Number of epochs to train.')
+    flags.DEFINE_integer('epochs', 1, 'Number of epochs to train.')
     flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
     flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
     flags.DEFINE_float('weight_decay', 0.001, 'Weight for L2 loss on embedding matrix.')
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     sess.run(tf.global_variables_initializer())
     feed_dict = {}
     saver = tf.train.Saver()
-    # saver.restore(sess,'./model.ckpt')
+    saver.restore(sess,'./model/model.ckpt')
 
     ###########################################################
     #
@@ -377,4 +377,3 @@ if __name__ == '__main__':
         print("Edge type:", "%04d" % et, "Test AP@k score", "{:.5f}".format(apk_score))
         print("Edge type:", "%04d" % et, "Test BEDROC score", "{:.5f}".format(bedroc))
         print()
-    # saver.save(sess, './model_gcas.ckpt')
