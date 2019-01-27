@@ -183,33 +183,33 @@ disease_tfidf = np.array(f_disease_tfidf['F'])
 disease_tfidf = np.transpose(disease_tfidf)
 disease_tfidf = sp.csc_matrix(disease_tfidf)
 
-# finish the drug drug network
-drug_drug_adj_list= list()
-drug_drug_adj_list.append(disease_network_adj)
+# finish the disease network
+dis_dis_adj_list= list()
+dis_dis_adj_list.append(disease_network_adj)
 
 val_test_size = 0.15
 n_genes = 12331
-n_drugs = 3215
-n_drugdrug_rel_types = len(drug_drug_adj_list)
+n_dis = 3215
+n_dis_rel_types = len(dis_dis_adj_list)
 gene_adj = gene_network_adj
 gene_degrees = np.array(gene_adj.sum(axis=0)).squeeze()
 
-gene_drug_adj = gene_disease_adj
-drug_gene_adj = gene_drug_adj.transpose(copy=True)
+gene_dis_adj = gene_disease_adj
+dis_gene_adj = gene_dis_adj.transpose(copy=True)
 
-drug_degrees_list = [np.array(drug_adj.sum(axis=0)).squeeze() for drug_adj in drug_drug_adj_list]
+dis_degrees_list = [np.array(dis_adj.sum(axis=0)).squeeze() for dis_adj in dis_dis_adj_list]
 
 
 # data representation
 adj_mats_orig = {
     (0, 0): [gene_adj, gene_adj.transpose(copy=True)],
-    (0, 1): [gene_drug_adj],
-    (1, 0): [drug_gene_adj],
-    (1, 1): drug_drug_adj_list + [x.transpose(copy=True) for x in drug_drug_adj_list],
+    (0, 1): [gene_dis_adj],
+    (1, 0): [dis_gene_adj],
+    (1, 1): dis_dis_adj_list + [x.transpose(copy=True) for x in dis_dis_adj_list],
 }
 degrees = {
     0: [gene_degrees, gene_degrees],
-    1: drug_degrees_list + drug_degrees_list,
+    1: dis_degrees_list + dis_degrees_list,
 }
 
 # features (genes)
@@ -217,23 +217,23 @@ gene_feat = sp.hstack(gene_feature_list_other_spe+[gene_feature_exp])
 gene_nonzero_feat, gene_num_feat = gene_feat.shape
 gene_feat = preprocessing.sparse_to_tuple(gene_feat.tocoo())
 
-# features (drugs)
-drug_feat = disease_tfidf
-drug_nonzero_feat, drug_num_feat = drug_feat.shape
-drug_feat = preprocessing.sparse_to_tuple(drug_feat.tocoo())
+# features (dis)
+dis_feat = disease_tfidf
+dis_nonzero_feat, dis_num_feat = dis_feat.shape
+dis_feat = preprocessing.sparse_to_tuple(dis_feat.tocoo())
 
 # data representation
 num_feat = {
     0: gene_num_feat,
-    1: drug_num_feat,
+    1: dis_num_feat,
 }
 nonzero_feat = {
     0: gene_nonzero_feat,
-    1: drug_nonzero_feat,
+    1: dis_nonzero_feat,
 }
 feat = {
     0: gene_feat,
-    1: drug_feat,
+    1: dis_feat,
 }
 
 edge_type2dim = {k: [adj.shape for adj in adjs] for k, adjs in adj_mats_orig.items()}
