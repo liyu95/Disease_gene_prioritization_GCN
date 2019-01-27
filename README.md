@@ -19,6 +19,7 @@ Overview of the proposed method. (A) The input of our model contains two compone
 * Python 3.6.7
 
 ## Install requirements
+All the related packages have been summarized in *requirements.txt*. One can install all the packages with following command.
 ```
 pip install -r requirements.txt
 ```
@@ -30,12 +31,16 @@ Due to the limit of the file size on Github, we store the data on Google Drive. 
 [data](https://drive.google.com/open?id=18yPVBjAvjtqLolno2RTAYt0Y_P-Hbdq7).
 
 ## Run the code
+One can run the code using the following command after configuring the environment and downloading the data.
 ```
 python main_prioritization.py
 ```
 
 ## Result
 The result matrix file can be downloaded here: [result](https://drive.google.com/open?id=1CDCrL9qmlirJUktnUULprUbDj9oUY0-W).
+
+## More explanation
+For calculating BEDROC, here we provide the function from the skchem package for the reference. For more accurate calculation, one can output the prediction and use R packages to do the calculation.
 
 ## Credits
 We would like to thank for the SNAP group for open-sourcing the decagon code: [decagon](https://github.com/marinkaz/decagon).
