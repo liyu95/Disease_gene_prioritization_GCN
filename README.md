@@ -2,8 +2,8 @@
 Disease gene prioritization using graph convolutional neural network
 
 ## Tested environment
-Centos 7 \\
-Python 3.6.7
+* Centos 7
+* Python 3.6.7
 
 ## Install requirements
 ```
