@@ -37,7 +37,7 @@ python main_prioritization.py
 ```
 
 ## Result
-The result matrix file can be downloaded here: [result](https://drive.google.com/open?id=1CDCrL9qmlirJUktnUULprUbDj9oUY0-W).
+The prediction matrix file can be downloaded here: [result](https://drive.google.com/open?id=1CDCrL9qmlirJUktnUULprUbDj9oUY0-W).
 
 ## More explanation
 For calculating BEDROC, here we provide the function from the skchem package for the reference. For more accurate calculation, one can output the prediction and use R packages to do the calculation.
