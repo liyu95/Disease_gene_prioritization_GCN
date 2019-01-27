@@ -24,5 +24,5 @@ python main_prioritization.py
 ## Result
 The result file can be donwloaded here: [result](https://drive.google.com/open?id=1CDCrL9qmlirJUktnUULprUbDj9oUY0-W)
 
-##Credits
+## Credits
 We would like to thank for the SNAP group for opensourcing the decagon code: [decagon](https://github.com/marinkaz/decagon)
