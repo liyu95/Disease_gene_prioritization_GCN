@@ -1,3 +1,6 @@
+Due to the limit of the file size on Github, we store the data on Google Drive. Please download the data here: 
+[data](https://drive.google.com/open?id=18yPVBjAvjtqLolno2RTAYt0Y_P-Hbdq7).
+
 ## genes_phenes.mat
 
 1. GeneGene_Hs: The HumanNet gene interaction network of size 12331 x 12331. 
