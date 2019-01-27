@@ -41,7 +41,7 @@ The prediction matrix file can be downloaded here: [result](https://drive.google
 
 Here is the embedding clustering result. For more explanation, please refer to the manuscript.
 <p align="center">
-<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/embedding.png" width="800"/>
+<img src="https://github.com/lykaust15/Disease_gene_prioritization_GCN/blob/master/figures/embedding.png" width="400"/>
 </p>
 
 ## More explanation
