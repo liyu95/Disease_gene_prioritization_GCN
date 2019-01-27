@@ -251,7 +251,6 @@ if __name__ == '__main__':
     FLAGS = flags.FLAGS
     flags.DEFINE_integer('neg_sample_size', 1, 'Negative sample size.')
     flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-    flags.DEFINE_integer('epochs', 0, 'Number of epochs to train.')
     flags.DEFINE_integer('hidden1', 64, 'Number of units in hidden layer 1.')
     flags.DEFINE_integer('hidden2', 32, 'Number of units in hidden layer 2.')
     flags.DEFINE_float('weight_decay', 0.001, 'Weight for L2 loss on embedding matrix.')
@@ -307,15 +306,14 @@ if __name__ == '__main__':
         dropout=FLAGS.dropout,
         placeholders=placeholders)
 
-    for et in [3]:
-        roc_score, auprc_score, apk_score, bedroc = get_accuracy_scores(
-            minibatch.test_edges, minibatch.test_edges_false, minibatch.idx2edge_type[et])
-        print("Edge type=", "[%02d, %02d, %02d]" % minibatch.idx2edge_type[et])
-        print("Edge type:", "%04d" % et, "Test AUROC score", "{:.5f}".format(roc_score))
-        print("Edge type:", "%04d" % et, "Test AUPRC score", "{:.5f}".format(auprc_score))
-        print("Edge type:", "%04d" % et, "Test AP@k score", "{:.5f}".format(apk_score))
-        print("Edge type:", "%04d" % et, "Test BEDROC score", "{:.5f}".format(bedroc))
-        print()
+    roc_score, auprc_score, apk_score, bedroc = get_accuracy_scores(
+        minibatch.test_edges, minibatch.test_edges_false, minibatch.idx2edge_type[3])
+    print("Edge type=", "[%02d, %02d, %02d]" % minibatch.idx2edge_type[et])
+    print("Edge type:", "%04d" % et, "Test AUROC score", "{:.5f}".format(roc_score))
+    print("Edge type:", "%04d" % et, "Test AUPRC score", "{:.5f}".format(auprc_score))
+    print("Edge type:", "%04d" % et, "Test AP@k score", "{:.5f}".format(apk_score))
+    print("Edge type:", "%04d" % et, "Test BEDROC score", "{:.5f}".format(bedroc))
+    print()
 
     prediction = get_prediction(minibatch.test_edges, minibatch.test_edges_false, 
     	minibatch.idx2edge_type[3])
