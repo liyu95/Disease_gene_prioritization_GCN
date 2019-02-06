@@ -1,7 +1,9 @@
 # PGCN: Disease gene prioritization by disease and gene embedding through GCN
 Disease gene prioritization is a fundamental step towards molecular diagnosis and treatment of diseases. This problem is highly challenging due to the very limited yet noisy knowledge of genes, diseases and, even more, on their associations. Despite the development of computational methods for disease gene prioritization, the performance of the existing methods is limited by manually-crafted features, network topology, or pre-defined rules of data fusion. Here we propose a novel graph convolutional network-based disease gene prioritization method, PGCN, through the systematic embedding of the heterogeneous network made by genes and diseases, as well as their individual features. The embedding learning model and the association prediction model are trained together in an end-to-end manner. We compared PGCN with five state-of-the-art methods on the Online Mendelian Inheritance in Man (OMIM) dataset, by challenging them on recovering missing associations, and on discovering associations for novel genes and/or diseases that are not seen in the training. Results show the significant improvements of PGCN over the existing methods. We further demonstrate that our embedding has biological meaning and can capture functional groups of genes.
 
-More details can be referred to the paper.
+More details can be referred to the [paper](https://www.biorxiv.org/content/10.1101/532226v1).
+
+
 
 ## Overview
 <p align="center">
@@ -46,6 +48,20 @@ Here is the embedding clustering result. For more explanation, please refer to t
 
 ## More explanation
 For calculating BEDROC, here we provide the function from the skchem package for the reference. For more accurate calculation, one can output the prediction and use R packages to do the calculation.
+
+## Reference
+Please refer to
+```
+@article{li2019pgcn,
+  title={PGCN: Disease gene prioritization by disease and gene embedding through graph convolutional neural networks},
+  author={Li, Yu and Kuwahara, Hiroyuki and Yang, Peng and Song, Le and Gao, Xin},
+  journal={bioRxiv},
+  pages={532226},
+  year={2019},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
+
 
 ## Credits
 We would like to thank for the SNAP group for open-sourcing the decagon code: [decagon](https://github.com/marinkaz/decagon).
