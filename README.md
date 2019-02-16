@@ -65,3 +65,5 @@ Please refer to
 
 ## Credits
 We would like to thank for the SNAP group for open-sourcing the decagon code: [decagon](https://github.com/marinkaz/decagon).
+
+*This tool is for academic purposes and research use only. Any commercial use is subject for authorization from King Abdullah University of Science and technology “KAUST”. Please contact us at ip@kaust.edu.sa.*
