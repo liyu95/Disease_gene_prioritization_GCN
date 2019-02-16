@@ -3,7 +3,16 @@ Disease gene prioritization is a fundamental step towards molecular diagnosis an
 
 More details can be referred to the [paper](https://www.biorxiv.org/content/10.1101/532226v1).
 
-
+```
+@article{li2019pgcn,
+  title={PGCN: Disease gene prioritization by disease and gene embedding through graph convolutional neural networks},
+  author={Li, Yu and Kuwahara, Hiroyuki and Yang, Peng and Song, Le and Gao, Xin},
+  journal={bioRxiv},
+  pages={532226},
+  year={2019},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
 
 ## Overview
 <p align="center">
@@ -48,19 +57,6 @@ Here is the embedding clustering result. For more explanation, please refer to t
 
 ## More explanation
 For calculating BEDROC, here we provide the function from the skchem package for the reference. For more accurate calculation, one can output the prediction and use R packages to do the calculation.
-
-## Reference
-Please refer to
-```
-@article{li2019pgcn,
-  title={PGCN: Disease gene prioritization by disease and gene embedding through graph convolutional neural networks},
-  author={Li, Yu and Kuwahara, Hiroyuki and Yang, Peng and Song, Le and Gao, Xin},
-  journal={bioRxiv},
-  pages={532226},
-  year={2019},
-  publisher={Cold Spring Harbor Laboratory}
-}
-```
 
 
 ## Credits
