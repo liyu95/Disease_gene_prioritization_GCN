@@ -55,7 +55,7 @@ Pillow==4.3.0
 progressbar2==3.39.2
 prometheus-client==0.5.0
 prompt-toolkit==2.0.7
-protobuf==3.6.0
+protobuf==3.15.0
 ptyprocess==0.5.2
 Pygments==2.2.0
 pygraphviz==1.5
