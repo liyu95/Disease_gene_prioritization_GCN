@@ -40,7 +40,7 @@ mock==2.0.0
 nbconvert==5.4.0
 nbformat==4.4.0
 networkx==2.0
-notebook==5.7.4
+notebook==6.4.12
 numexpr==2.6.9
 numpy==1.15.4
 olefile==0.44
