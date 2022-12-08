@@ -3,7 +3,7 @@ astor==0.6.2
 backcall==0.1.0
 backports.weakref==1.0.post1
 bleach==1.5.0
-certifi==2018.11.29
+certifi==2022.12.7
 chardet==3.0.4
 cycler==0.10.0
 Cython==0.29.2
